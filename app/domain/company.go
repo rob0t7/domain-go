@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 )
 
@@ -10,12 +12,35 @@ type Company struct {
 	employees map[uuid.UUID]Employee
 }
 
+func New(name string) *Company {
+	id := uuid.New()
+	return NewWithID(id, name)
+}
+
+func NewWithID(id uuid.UUID, name string) *Company {
+	if id == uuid.Nil {
+		panic("id cannot be blank")
+	}
+	if name == "" {
+		panic("name cannot be blank")
+	}
+	return &Company{
+		id:        id,
+		name:      name,
+		employees: make(map[uuid.UUID]Employee),
+	}
+}
+
 func (c *Company) ID() uuid.UUID {
 	return c.id
 }
 
 func (c *Company) Name() string {
 	return c.name
+}
+
+func (c *Company) String() string {
+	return fmt.Sprintf(`Company[ID="%s", Name="%s"]`, c.id, c.name)
 }
 
 func (c *Company) Employees() []Employee {

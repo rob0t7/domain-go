@@ -5,12 +5,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rob0t7/domain-go/app"
+	"github.com/rob0t7/domain-go/app/memrepository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRegisterCompany(t *testing.T) {
-	companyService := app.NewCompanyService(NewMemoryCompanyRepository())
+	companyService := app.NewCompanyService(memrepository.New())
 
 	req := app.RegisterCompanyRequest{Name: "ACME INC"}
 	res, err := companyService.RegisterCompany(req)
@@ -24,7 +25,7 @@ func TestRegisterCompany(t *testing.T) {
 }
 
 func TestFetchCompany(t *testing.T) {
-	companyService := app.NewCompanyService(NewMemoryCompanyRepository())
+	companyService := app.NewCompanyService(memrepository.New())
 	company, _ := companyService.RegisterCompany(app.RegisterCompanyRequest{Name: "ACME INC"})
 
 	t.Run("Successfully fetch company", func(t *testing.T) {
@@ -41,7 +42,7 @@ func TestFetchCompany(t *testing.T) {
 }
 
 func TestUpdateCompanyName(t *testing.T) {
-	companyService := app.NewCompanyService(NewMemoryCompanyRepository())
+	companyService := app.NewCompanyService(memrepository.New())
 	company, err := companyService.RegisterCompany(app.RegisterCompanyRequest{Name: "ACME INC"})
 	require.NoError(t, err)
 

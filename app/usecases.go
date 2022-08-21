@@ -30,7 +30,7 @@ type CompanyResponse struct {
 
 func (s *CompanyService) RegisterCompany(req RegisterCompanyRequest) (CompanyResponse, error) {
 	company, _ := domain.RegisterCompany(req.Name)
-	if err := s.repository.Save(company); err != nil {
+	if err := s.repository.Insert(company); err != nil {
 		return CompanyResponse{}, err
 	}
 	return CompanyResponse{
@@ -62,7 +62,7 @@ func (s *CompanyService) UpdateCompany(req UpdateCompanyRequest) (CompanyRespons
 	}
 
 	company.Rename(req.Name)
-	if err := s.repository.Save(&company); err != nil {
+	if err := s.repository.Update(company); err != nil {
 		return CompanyResponse{}, err
 	}
 
