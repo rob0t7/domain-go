@@ -22,7 +22,7 @@ func New() *RESTServer {
 	return &server
 }
 
-func (s RESTServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *RESTServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.Handler.ServeHTTP(w, r)
 }
 

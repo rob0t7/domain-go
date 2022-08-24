@@ -16,8 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/rob0t7/domain-go/app/rest"
 	"github.com/spf13/cobra"
 )
 
@@ -26,8 +25,9 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Run REST web service",
 	Long:  `Runs the REST web server. Responsed to REST requests to the Company Application`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("serve called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		server := rest.New()
+		return server.ListenAndServe()
 	},
 }
 

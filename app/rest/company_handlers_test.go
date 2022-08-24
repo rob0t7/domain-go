@@ -26,44 +26,97 @@ func TestRetrieveReturns404IfNotFound(t *testing.T) {
 func TestCreateCompanySuccessfully(t *testing.T) {
 	server := rest.New()
 	companyName := "ACME INC"
-	url := "/companies"
-	reqBody := strings.NewReader(fmt.Sprintf(`{"name":"%s"}`, companyName))
+	createResponse, location := createCompany(t, server, companyName)
+	assert.Equal(t, companyName, createResponse.Name)
+	assert.NotEqual(t, uuid.Nil, createResponse.ID)
 
-	r := httptest.NewRequest(http.MethodPost, url, reqBody)
+	r := httptest.NewRequest(http.MethodGet, location, nil)
 	w := httptest.NewRecorder()
 	server.ServeHTTP(w, r)
 
 	response := w.Result()
-	assert.Equal(t, http.StatusCreated, response.StatusCode)
+	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.Equal(t, rest.JsonContentType, response.Header.Get("Content-Type"))
 	var actualResponse rest.CompanyResponse
 	err := json.Unmarshal(w.Body.Bytes(), &actualResponse)
 	require.NoError(t, err)
 	assert.Equal(t, companyName, actualResponse.Name)
-	assert.NotEqual(t, uuid.Nil, actualResponse.ID)
-	id := actualResponse.ID
-	location := response.Header.Get("Location")
-	assert.Equal(t, fmt.Sprintf("/companies/%s", actualResponse.ID), location)
-
-	r = httptest.NewRequest(http.MethodGet, location, nil)
-	w = httptest.NewRecorder()
-	server.ServeHTTP(w, r)
-	response = w.Result()
-
-	assert.Equal(t, http.StatusOK, response.StatusCode)
-	assert.Equal(t, rest.JsonContentType, response.Header.Get("Content-Type"))
-	err = json.Unmarshal(w.Body.Bytes(), &actualResponse)
-	require.NoError(t, err)
-	assert.Equal(t, companyName, actualResponse.Name)
-	assert.Equal(t, id.String(), actualResponse.ID.String())
-
+	assert.Equal(t, createResponse.ID, actualResponse.ID)
 }
 
-// func TestFetchCompanyCollection(t *testing.T) {
-// 	url := "/companies"
-// 	server := rest.New()
-// 	r := httptest.NewRequest(http.MethodGet, url, nil)
-// 	w := httptest.NewRecorder()
-// 	server.ServeHTTP(w, r)
-// 	assert.Equal(t, http.StatusOK, w.Code)
-// }
+func createCompany(t *testing.T, server *rest.RESTServer, name string) (rest.CompanyResponse, string) {
+	t.Helper()
+	reqBody := strings.NewReader(fmt.Sprintf(`{"name": "%s"}`, name))
+	r := httptest.NewRequest(http.MethodPost, "/companies", reqBody)
+	r.Header.Set("Content-Type", "application/json")
+	r.Header.Set("Accept", "application/json")
+	w := httptest.NewRecorder()
+
+	server.ServeHTTP(w, r)
+
+	require.Equal(t, http.StatusCreated, w.Code)
+	require.Equal(t, rest.JsonContentType, w.Header().Get("Content-Type"))
+	var actualResponse rest.CompanyResponse
+	err := json.NewDecoder(w.Result().Body).Decode(&actualResponse)
+	require.NoError(t, err)
+	location := w.Header().Get("Location")
+	assert.Equal(t, fmt.Sprintf("/companies/%s", actualResponse.ID), location)
+
+	return actualResponse, location
+}
+func TestFetchCompanyCollection(t *testing.T) {
+	url := "/companies"
+	server := rest.New()
+	company1, _ := createCompany(t, server, "Wiley Coyote LTD")
+	company2, _ := createCompany(t, server, "ACME INC")
+	expectedResp := rest.CompanyCollectionResponse{
+		Total:     2,
+		Companies: []rest.CompanyResponse{company2, company1},
+	}
+
+	r := httptest.NewRequest(http.MethodGet, url, nil)
+	w := httptest.NewRecorder()
+	server.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "application/hal+json", w.Header().Get("Content-Type"))
+	var actualResponse rest.CompanyCollectionResponse
+	err := json.NewDecoder(w.Result().Body).Decode(&actualResponse)
+	require.NoError(t, err)
+	assert.Equal(t, expectedResp, actualResponse)
+}
+
+func TestDeleteCompany(t *testing.T) {
+	server := rest.New()
+	company, _ := createCompany(t, server, "ACME INC")
+
+	r := httptest.NewRequest(http.MethodDelete, "/companies/"+company.ID.String(), nil)
+	w := httptest.NewRecorder()
+	server.ServeHTTP(w, r)
+	assert.Equal(t, http.StatusNoContent, w.Code)
+
+	w = httptest.NewRecorder()
+	server.ServeHTTP(w, r)
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func TestUpdateCompany(t *testing.T) {
+	server := rest.New()
+	company, _ := createCompany(t, server, "ACME INC")
+
+	url := "/companies/" + company.ID.String()
+	reqBody := strings.NewReader(`{"name": "Wiley Coyote LTD"}`)
+	r := httptest.NewRequest(http.MethodPut, url, reqBody)
+	r.Header.Set("Content-Type", "application/json")
+	r.Header.Set("Allow", "application/json")
+	w := httptest.NewRecorder()
+	server.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	var actualResponse rest.CompanyResponse
+	err := json.NewDecoder(w.Result().Body).Decode(&actualResponse)
+	require.NoError(t, err)
+	assert.Equal(t, company.ID, actualResponse.ID)
+	assert.Equal(t, "Wiley Coyote LTD", actualResponse.Name)
+
+}

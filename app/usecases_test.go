@@ -64,3 +64,27 @@ func TestUpdateCompanyName(t *testing.T) {
 	})
 
 }
+
+func TestFetchCompanyCollection(t *testing.T) {
+	companyService := app.NewCompanyService(memrepository.New())
+	company, err := companyService.RegisterCompany(app.RegisterCompanyRequest{Name: "Wiley Coyote LTD"})
+	require.NoError(t, err)
+
+	resp := companyService.FetchAll()
+	assert.Equal(t, 1, resp.Total)
+	assert.Equal(t, []app.CompanyResponse{company}, resp.Companies)
+}
+
+func TestDeleteCompany(t *testing.T) {
+	t.Run("Removes company if it exists", func(t *testing.T) {
+		companyService := app.NewCompanyService(memrepository.New())
+		company, err := companyService.RegisterCompany(app.RegisterCompanyRequest{Name: "ACME INC"})
+		require.NoError(t, err)
+
+		err = companyService.DeleteCompany(app.DeleteCompanyRequest{CompanyID: company.ID})
+		require.NoError(t, err)
+
+		err = companyService.DeleteCompany(app.DeleteCompanyRequest{CompanyID: company.ID})
+		require.ErrorIs(t, err, app.ErrNotFound)
+	})
+}

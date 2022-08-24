@@ -71,3 +71,29 @@ func (s *CompanyService) UpdateCompany(req UpdateCompanyRequest) (CompanyRespons
 		Name: company.Name(),
 	}, nil
 }
+
+type DeleteCompanyRequest struct {
+	CompanyID uuid.UUID
+}
+
+func (s *CompanyService) DeleteCompany(req DeleteCompanyRequest) error {
+	company, err := s.repository.FindByID(req.CompanyID)
+	if err != nil {
+		return err
+	}
+	return s.repository.Delete(company)
+}
+
+type CompanyCollectionResponse struct {
+	Total     int
+	Companies []CompanyResponse
+}
+
+func (s *CompanyService) FetchAll() (response CompanyCollectionResponse) {
+	companies := s.repository.FindAll()
+	response.Total = len(companies)
+	for _, company := range companies {
+		response.Companies = append(response.Companies, CompanyResponse{company.ID(), company.Name()})
+	}
+	return response
+}
