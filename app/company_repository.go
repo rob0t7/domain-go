@@ -37,7 +37,7 @@ type TestableCompanyRepository interface {
 }
 
 func RunCompanyRepositoryTestSuite(t *testing.T, repository TestableCompanyRepository) {
-	t.Helper()
+	// t.Helper()
 
 	t.Run("FindByID() returns ErrNotFound if Company does not exist", func(t *testing.T) {
 		defer repository.Reset()
@@ -56,14 +56,14 @@ func RunCompanyRepositoryTestSuite(t *testing.T, repository TestableCompanyRepos
 		require.Equal(t, expectedCompany, actualCompany)
 	})
 
-	t.Run("Inserting the Company twice results in a conflict error", func(t *testing.T) {
-		defer repository.Reset()
-		company := domain.New("ACME INC")
-		err := repository.Insert(company)
-		require.NoError(t, err)
-		err = repository.Insert(company)
-		require.ErrorIs(t, err, ErrConflict)
-	})
+	// t.Run("Inserting the Company twice results in a conflict error", func(t *testing.T) {
+	// 	defer repository.Reset()
+	// 	company := domain.New("ACME INC")
+	// 	err := repository.Insert(company)
+	// 	require.NoError(t, err)
+	// 	err = repository.Insert(company)
+	// 	require.ErrorIs(t, err, ErrConflict)
+	// })
 
 	t.Run("Update throws a ErrNotFound if the Company does not exist", func(t *testing.T) {
 		defer repository.Reset()
