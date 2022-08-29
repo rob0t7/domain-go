@@ -11,15 +11,15 @@ import (
 	"github.com/rob0t7/domain-go/app/domain"
 )
 
-type PostgresCompanyRepository struct {
+type CompanyRepository struct {
 	db *DB
 }
 
-func NewCompanyRepository(db *DB) *PostgresCompanyRepository {
-	return &PostgresCompanyRepository{db: db}
+func NewCompanyRepository(db *DB) *CompanyRepository {
+	return &CompanyRepository{db: db}
 }
 
-func (r *PostgresCompanyRepository) FindAll() []*domain.Company {
+func (r *CompanyRepository) FindAll() []*domain.Company {
 	var companies []*domain.Company
 	rows, err := r.db.Query(`SELECT id,name FROM companies ORDER BY name`)
 	if err != nil {
@@ -47,7 +47,7 @@ func (r *PostgresCompanyRepository) FindAll() []*domain.Company {
 	return companies
 }
 
-func (r *PostgresCompanyRepository) FindByID(id uuid.UUID) (*domain.Company, error) {
+func (r *CompanyRepository) FindByID(id uuid.UUID) (*domain.Company, error) {
 	var (
 		name string
 	)
@@ -61,7 +61,7 @@ func (r *PostgresCompanyRepository) FindByID(id uuid.UUID) (*domain.Company, err
 	return domain.NewWithID(id, name), nil
 }
 
-func (r *PostgresCompanyRepository) Insert(company *domain.Company) error {
+func (r *CompanyRepository) Insert(company *domain.Company) error {
 	result, err := r.db.Exec(`INSERT INTO companies(id,name) VALUES( $1, $2)`, company.ID().String(), company.Name())
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "ERROR: duplicate key value violates unique constraint") {
@@ -79,7 +79,7 @@ func (r *PostgresCompanyRepository) Insert(company *domain.Company) error {
 	return nil
 }
 
-func (r *PostgresCompanyRepository) Update(company *domain.Company) error {
+func (r *CompanyRepository) Update(company *domain.Company) error {
 	result, err := r.db.Exec(`UPDATE companies SET name = $1 WHERE id = $2`, company.Name(), company.ID().String())
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func (r *PostgresCompanyRepository) Update(company *domain.Company) error {
 	return nil
 }
 
-func (r *PostgresCompanyRepository) Delete(company *domain.Company) error {
+func (r *CompanyRepository) Delete(company *domain.Company) error {
 	result, err := r.db.Exec(`DELETE FROM companies WHERE id = $1`, company.ID().String())
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func (r *PostgresCompanyRepository) Delete(company *domain.Company) error {
 	return nil
 }
 
-func (r *PostgresCompanyRepository) Reset() {
+func (r *CompanyRepository) Reset() {
 	_, err := r.db.Exec(`TRUNCATE table companies`)
 	if err != nil {
 		panic("failed to reset CompanyRepository")
