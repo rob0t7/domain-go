@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/rob0t7/domain-go/app"
-	"github.com/rob0t7/domain-go/app/memrepository"
 )
 
 type RESTServer struct {
@@ -12,11 +11,11 @@ type RESTServer struct {
 	companyService *app.CompanyService
 }
 
-func New() *RESTServer {
+func New(companyService *app.CompanyService) *RESTServer {
 	var server RESTServer
 	server.Addr = ":8080"
 
-	server.companyService = app.NewCompanyService(memrepository.New()) // TODO: This should be using DI
+	server.companyService = companyService
 	server.registerHandlers()
 
 	return &server

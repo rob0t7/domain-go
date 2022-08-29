@@ -15,7 +15,7 @@ import (
 )
 
 func TestRetrieveReturns404IfNotFound(t *testing.T) {
-	server := rest.New()
+	server := newRESTServer()
 	url := "/companies/" + uuid.NewString()
 	r := httptest.NewRequest(http.MethodGet, url, nil)
 	w := httptest.NewRecorder()
@@ -24,7 +24,7 @@ func TestRetrieveReturns404IfNotFound(t *testing.T) {
 }
 
 func TestCreateCompanySuccessfully(t *testing.T) {
-	server := rest.New()
+	server := newRESTServer()
 	companyName := "ACME INC"
 	createResponse, location := createCompany(t, server, companyName)
 	assert.Equal(t, companyName, createResponse.Name)
@@ -66,7 +66,7 @@ func createCompany(t *testing.T, server *rest.RESTServer, name string) (rest.Com
 }
 func TestFetchCompanyCollection(t *testing.T) {
 	url := "/companies"
-	server := rest.New()
+	server := newRESTServer()
 	company1, _ := createCompany(t, server, "Wiley Coyote LTD")
 	company2, _ := createCompany(t, server, "ACME INC")
 	expectedResp := rest.CompanyCollectionResponse{
@@ -87,7 +87,7 @@ func TestFetchCompanyCollection(t *testing.T) {
 }
 
 func TestDeleteCompany(t *testing.T) {
-	server := rest.New()
+	server := newRESTServer()
 	company, _ := createCompany(t, server, "ACME INC")
 
 	r := httptest.NewRequest(http.MethodDelete, "/companies/"+company.ID.String(), nil)
@@ -101,7 +101,7 @@ func TestDeleteCompany(t *testing.T) {
 }
 
 func TestUpdateCompany(t *testing.T) {
-	server := rest.New()
+	server := newRESTServer()
 	company, _ := createCompany(t, server, "ACME INC")
 
 	url := "/companies/" + company.ID.String()

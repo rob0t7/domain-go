@@ -16,6 +16,8 @@ limitations under the License.
 package cmd
 
 import (
+	"github.com/rob0t7/domain-go/app"
+	"github.com/rob0t7/domain-go/app/postgres"
 	"github.com/rob0t7/domain-go/app/rest"
 	"github.com/spf13/cobra"
 )
@@ -26,7 +28,13 @@ var serveCmd = &cobra.Command{
 	Short: "Run REST web service",
 	Long:  `Runs the REST web server. Responsed to REST requests to the Company Application`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		server := rest.New()
+		db, err := postgres.Open("postgres://postgres:postgres@localhost:5432/app")
+		if err != nil {
+			return err
+		}
+		repo := postgres.NewCompanyRepository(db)
+		service := app.NewCompanyService(repo)
+		server := rest.New(service)
 		return server.ListenAndServe()
 	},
 }
