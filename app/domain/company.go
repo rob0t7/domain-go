@@ -94,6 +94,7 @@ type EmployeeHiredEvent struct {
 }
 
 func (c *Company) HireEmployee(firstName, lastName string) (employee Employee, event EmployeeHiredEvent) {
+	employee.companyID = c.id
 	if firstName == "" {
 		panic("employee firstName cannot be blank")
 	}

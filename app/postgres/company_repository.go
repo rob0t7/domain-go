@@ -12,10 +12,10 @@ import (
 )
 
 type CompanyRepository struct {
-	db *DB
+	db DBInterface
 }
 
-func NewCompanyRepository(db *DB) *CompanyRepository {
+func NewCompanyRepository(db DBInterface) *CompanyRepository {
 	return &CompanyRepository{db: db}
 }
 
@@ -110,7 +110,7 @@ func (r *CompanyRepository) Delete(company *domain.Company) error {
 }
 
 func (r *CompanyRepository) Reset() {
-	_, err := r.db.Exec(`TRUNCATE table companies`)
+	_, err := r.db.Exec(`TRUNCATE table companies CASCADE`)
 	if err != nil {
 		panic("failed to reset CompanyRepository")
 	}
